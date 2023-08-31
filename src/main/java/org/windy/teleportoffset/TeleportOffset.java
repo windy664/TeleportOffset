@@ -17,12 +17,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
         String version = this.getDescription().getVersion();
         String serverName = this.getServer().getName();
-        this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+\n");
-        this.getServer().getConsoleSender().sendMessage(" ______        __                         __   ____    ___   ___            __ ");
-        this.getServer().getConsoleSender().sendMessage("/_  __/ ___   / / ___    ___  ___   ____ / /_ / __ \\  / _/  / _/  ___ ___  / /_");
-        this.getServer().getConsoleSender().sendMessage(" / /   / -_) / / / -_)  / _ \\/ _ \\ / __// __// /_/ / / _/  / _/  (_-</ -_)/ __/");
-        this.getServer().getConsoleSender().sendMessage("/_/    \\__/ /_/  \\__/  / .__/\\___//_/   \\__/ \\____/ /_/   /_/   /___/\\__/ \\__/ ");
-        this.getServer().getConsoleSender().sendMessage("                      /_/     \n");
+        this.getServer().getConsoleSender().sendMessage(Texts.logo);
         this.getServer().getConsoleSender().sendMessage("§a"+ version + " §e " + serverName + "\n");
         this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+");
         // Plugin startup logic
@@ -63,12 +58,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
-        this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+\n");
-        this.getServer().getConsoleSender().sendMessage(" ______        __                         __   ____    ___   ___            __ ");
-        this.getServer().getConsoleSender().sendMessage("/_  __/ ___   / / ___    ___  ___   ____ / /_ / __ \\  / _/  / _/  ___ ___  / /_");
-        this.getServer().getConsoleSender().sendMessage(" / /   / -_) / / / -_)  / _ \\/ _ \\ / __// __// /_/ / / _/  / _/  (_-</ -_)/ __/");
-        this.getServer().getConsoleSender().sendMessage("/_/    \\__/ /_/  \\__/  / .__/\\___//_/   \\__/ \\____/ /_/   /_/   /___/\\__/ \\__/ ");
-        this.getServer().getConsoleSender().sendMessage("                      /_/     \n");
+        this.getServer().getConsoleSender().sendMessage(Texts.logo);
         this.getServer().getConsoleSender().sendMessage("已卸载！\n");
         this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+");
     }
