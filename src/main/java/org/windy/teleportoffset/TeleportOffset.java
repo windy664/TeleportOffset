@@ -57,7 +57,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         Location oldlocation = Objects.requireNonNull(event.getFrom()).clone();
         Location location = Objects.requireNonNull(event.getTo()).clone();
         location.add(offsetX, offsetY, offsetZ);
-        this.getLogger().info("玩家 " + event.getPlayer().getName() + " 从 " + oldlocation + "传送到: " + location.toString());
+        this.getLogger().info("玩家 " + event.getPlayer().getName() + " 从 " + oldlocation + "传送到 " + location.toString());
         event.setTo(location);
     }
 
