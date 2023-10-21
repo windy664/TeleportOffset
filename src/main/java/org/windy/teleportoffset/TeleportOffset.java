@@ -2,8 +2,10 @@ package org.windy.teleportoffset;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -17,13 +19,8 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
         String version = this.getDescription().getVersion();
         String serverName = this.getServer().getName();
-        this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+\n");
-        this.getServer().getConsoleSender().sendMessage(" ______        __                         __   ____    ___   ___            __ ");
-        this.getServer().getConsoleSender().sendMessage("/_  __/ ___   / / ___    ___  ___   ____ / /_ / __ \\  / _/  / _/  ___ ___  / /_");
-        this.getServer().getConsoleSender().sendMessage(" / /   / -_) / / / -_)  / _ \\/ _ \\ / __// __// /_/ / / _/  / _/  (_-</ -_)/ __/");
-        this.getServer().getConsoleSender().sendMessage("/_/    \\__/ /_/  \\__/  / .__/\\___//_/   \\__/ \\____/ /_/   /_/   /___/\\__/ \\__/ ");
-        this.getServer().getConsoleSender().sendMessage("                      /_/     \n");
-        this.getServer().getConsoleSender().sendMessage("§a"+ version + " §e " + serverName + "\n");
+        this.getServer().getConsoleSender().sendMessage(Texts.logo);
+        this.getServer().getConsoleSender().sendMessage("§a" + version + " §e " + serverName + "\n");
         this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+");
         // Plugin startup logic
     }
@@ -45,7 +42,6 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -54,21 +50,30 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         double offsetX = this.getConfig().getDouble("teleport-offset.x");
         double offsetY = this.getConfig().getDouble("teleport-offset.y");
         double offsetZ = this.getConfig().getDouble("teleport-offset.z");
-        Location oldlocation = Objects.requireNonNull(event.getFrom()).clone();
+
+        Location oldLocation = Objects.requireNonNull(event.getFrom()).clone();
         Location location = Objects.requireNonNull(event.getTo()).clone();
-        location.add(offsetX, offsetY, offsetZ);
-        this.getLogger().info("玩家 " + event.getPlayer().getName() + " 从 " + oldlocation + "传送到 " + location.toString());
+
+        // 获取玩家和目标世界的名字
+        Player player = event.getPlayer();
+        String worldName = location.getWorld().getName();
+        String playerName = player.getName();
+
+        // 如果玩家被传送到他们自己名字的世界，将他们传送到世界的最高点
+        if (worldName.equalsIgnoreCase(playerName)) {
+            location.setY(location.getWorld().getMaxHeight());
+        } else {
+            // 否则，添加偏移量
+            location.add(offsetX, offsetY, offsetZ);
+        }
+
+        this.getLogger().info("玩家 " + playerName + " 从 " + oldLocation + " 传送到: " + location);
         event.setTo(location);
     }
 
     @Override
     public void onDisable() {
-        this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+\n");
-        this.getServer().getConsoleSender().sendMessage(" ______        __                         __   ____    ___   ___            __ ");
-        this.getServer().getConsoleSender().sendMessage("/_  __/ ___   / / ___    ___  ___   ____ / /_ / __ \\  / _/  / _/  ___ ___  / /_");
-        this.getServer().getConsoleSender().sendMessage(" / /   / -_) / / / -_)  / _ \\/ _ \\ / __// __// /_/ / / _/  / _/  (_-</ -_)/ __/");
-        this.getServer().getConsoleSender().sendMessage("/_/    \\__/ /_/  \\__/  / .__/\\___//_/   \\__/ \\____/ /_/   /_/   /___/\\__/ \\__/ ");
-        this.getServer().getConsoleSender().sendMessage("                      /_/     \n");
+        this.getServer().getConsoleSender().sendMessage(Texts.logo);
         this.getServer().getConsoleSender().sendMessage("已卸载！\n");
         this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+");
     }
