@@ -1,5 +1,7 @@
 package org.windy.teleportoffset;
 import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -61,8 +63,11 @@ public class TeleportOffset extends JavaPlugin implements Listener {
 
         // 如果玩家被传送到他们自己名字的世界，将他们传送到方块的最高点
         if (worldName.equalsIgnoreCase(playerName)) {
-            int highestY = location.getWorld().getHighestBlockYAt(location);
-            location.setY(highestY);
+            location = findHighestNonAirBlockLocation(location);
+            //location.setY(location.getWorld().getMaxHeight());
+            /*int highestY = location.getWorld().getHighestBlockYAt(location);
+            this.getLogger().info("玩家"+ playerName +"前的方块最高Y："+String.valueOf(highestY));
+            location.setY(highestY);*/
         } else {
             // 否则，添加偏移量
             location.add(offsetX, offsetY, offsetZ);
@@ -71,6 +76,21 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         this.getLogger().info("玩家 " + playerName + " 从 " + oldLocation + " 传送到: " + location);
         event.setTo(location);
     }
+    private Location findHighestNonAirBlockLocation(Location location) {
+        World world = location.getWorld();
+        int x = location.getBlockX();
+        int z = location.getBlockZ();
+
+        for (int y = world.getMaxHeight(); y >= 0; y--) {
+            Block block = world.getBlockAt(x, y, z);
+            if (!block.getType().isAir()) {
+                return block.getLocation();
+            }
+        }
+
+        return location;  // 如果所有方块都是空气，返回原始位置
+    }
+
 
     @Override
     public void onDisable() {
