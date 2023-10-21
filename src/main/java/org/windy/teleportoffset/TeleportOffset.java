@@ -59,9 +59,10 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         String worldName = location.getWorld().getName();
         String playerName = player.getName();
 
-        // 如果玩家被传送到他们自己名字的世界，将他们传送到世界的最高点
+        // 如果玩家被传送到他们自己名字的世界，将他们传送到方块的最高点
         if (worldName.equalsIgnoreCase(playerName)) {
-            location.setY(location.getWorld().getMaxHeight());
+            int highestY = location.getWorld().getHighestBlockYAt(location);
+            location.setY(highestY);
         } else {
             // 否则，添加偏移量
             location.add(offsetX, offsetY, offsetZ);
