@@ -1,4 +1,5 @@
 package org.windy.teleportoffset;
+
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -7,11 +8,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,7 +18,9 @@ import java.util.Objects;
 
 public class TeleportOffset extends JavaPlugin implements Listener {
     // 默认Debug模式关闭
-    private boolean debugMode = false;
+    String value = this.getConfig().getString("Debug");
+    boolean debugMode = Boolean.parseBoolean(value);
+
 
     @Override
     public void onEnable() {
@@ -50,7 +51,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                     return true;
                 }
                 debugMode = !debugMode; // 切换debug模式
-                sender.sendMessage("§aDebug模式已" + (debugMode ? "开启" : "关闭"));
+                sender.sendMessage("§aDebug模式已临时" + (debugMode ? "开启" : "关闭"));
                 return true;
             }else{
                  sender.sendMessage("§c用法: /teleportoffset reload");

@@ -1,8 +1,10 @@
-#偏移坐标
+#不启用的世界偏移坐标
 teleport-offset:
   x: 0
-  y: 0
+  y: 3
   z: 0
+#不启用的世界
 Disabled-world:
   - world
   - spawn
+Debug: true
