@@ -6,6 +6,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -33,6 +34,9 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         this.getServer().getConsoleSender().sendMessage(Texts.logo);
         this.getServer().getConsoleSender().sendMessage("§a" + version + " §e " + serverName + "\n");
         this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+");
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            this.getServer().getConsoleSender().sendMessage("检测到PlaceholderAPI，已兼容！");
+        }
         // Plugin startup logic
     }
 
@@ -110,18 +114,23 @@ public class TeleportOffset extends JavaPlugin implements Listener {
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Location playerLocation = player.getLocation();
-        double yThreshold = this.getConfig().getDouble("void.y");
-        boolean enable = this.getConfig().getBoolean("void.enable");
+        FileConfiguration config = this.getConfig();
+
+        double yThreshold = config.getDouble("void.y");
+        boolean enable = config.getBoolean("void.enable");
         String worldName = event.getTo().getWorld().getName();
-        List<String> worlds = this.getConfig().getStringList("void.worlds");
+        List<String> worlds = config.getStringList("void.worlds");
         boolean status = worlds.contains(worldName);
-        if (status) {
-            if (playerLocation.getY() < yThreshold && enable) {
-                List<String> commonds = this.getConfig().getStringList("void.commands");
-                commonds = PlaceholderAPI.setPlaceholders(event.getPlayer(), commonds);
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.valueOf(commonds));
+
+        if (status && playerLocation.getY() < yThreshold && enable) {
+            List<String> commands = config.getStringList("void.commands");
+
+            // 使用PlaceholderAPI处理可能存在的占位符
+            for (String command : commands) {
+                String processedCommand = PlaceholderAPI.setPlaceholders(player, command);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processedCommand);
                 if (debugMode) {
-                    this.getLogger().info("玩家 " + player + " 因y坐标是低于阈值被执行" + commonds);
+                    getLogger().info("玩家 " + player + " 因y坐标低于阈值被执行: " + processedCommand);
                 }
             }
         }
