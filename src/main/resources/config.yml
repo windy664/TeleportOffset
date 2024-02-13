@@ -15,6 +15,6 @@ void:
   y: -40
   worlds:
     - world
-  #这里的命令以控制台身份执行
+  #这里的命令以控制台身份执行，支持PlaceholderAPI
   commands:
     - tp %player_name% -18 60 -37
