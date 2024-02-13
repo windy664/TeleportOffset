@@ -1,5 +1,6 @@
 package org.windy.teleportoffset;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -8,9 +9,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import me.clip.placeholderapi.PlaceholderAPI;
 import java.util.List;
 import java.util.Objects;
 
@@ -83,18 +85,6 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 this.getLogger().info("玩家 " + playerName + " 当前世界最高点：" + location);
             }
         }
-
-        /*location = findHighestNonAirBlockLocation(location);
-        this.getLogger().info("玩家 " + playerName + " 当前世界方块最高点：" + location);*/
-/*
-        // 如果玩家被传送到他们自己名字的世界，将他们传送到方块的最高点
-        if (worldName.equalsIgnoreCase(playerName)) {
-            location = findHighestNonAirBlockLocation(location);
-            this.getLogger().info("玩家 " + playerName + " 当前世界最高点：" + location);
-        } else {
-            // 否则，添加偏移量
-            location.add(offsetX, offsetY, offsetZ);
-        }*/
         event.setTo(location);
         if(debugMode) {
             this.getLogger().info("玩家 " + playerName + " 从 " + oldLocation + " 传送到: " + location);
@@ -116,7 +106,26 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         return location;  // 如果所有方块都是空气，返回原始位置
     }
 
-
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Location playerLocation = player.getLocation();
+        double yThreshold = this.getConfig().getDouble("void.y");
+        boolean enable = this.getConfig().getBoolean("void.enable");
+        String worldName = event.getTo().getWorld().getName();
+        List<String> worlds = this.getConfig().getStringList("void.worlds");
+        boolean status = worlds.contains(worldName);
+        if (status) {
+            if (playerLocation.getY() < yThreshold && enable) {
+                List<String> commonds = this.getConfig().getStringList("void.commands");
+                commonds = PlaceholderAPI.setPlaceholders(event.getPlayer(), commonds);
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), String.valueOf(commonds));
+                if (debugMode) {
+                    this.getLogger().info("玩家 " + player + " 因y坐标是低于阈值被执行" + commonds);
+                }
+            }
+        }
+    }
     @Override
     public void onDisable() {
         this.getServer().getConsoleSender().sendMessage(Texts.logo);

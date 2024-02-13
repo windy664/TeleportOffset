@@ -1,10 +1,20 @@
-#不启用的世界偏移坐标
+#不启用传送到顶部的世界偏移坐标
 teleport-offset:
   x: 0
   y: 3
   z: 0
-#不启用的世界
+#不启用传送到顶部的世界
 Disabled-world:
   - world
   - spawn
+#是否开启调试模式
 Debug: true
+#虚空自动传送
+void:
+  enable: true
+  y: -40
+  worlds:
+    - world
+  #这里的命令以控制台身份执行
+  commands:
+    - tp %player_name% -18 60 -37
