@@ -14,6 +14,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import me.clip.placeholderapi.PlaceholderAPI;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -89,10 +91,31 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 this.getLogger().info("玩家 " + playerName + " 当前世界最高点：" + location);
             }
         }
-        event.setTo(location);
+        final Location finalLocation = location.clone();
+        event.setTo(finalLocation);
+
+        //检查玩家是否传送到目的Y值
+
+        double initialY = player.getLocation().getY();
         if(debugMode) {
             this.getLogger().info("玩家 " + playerName + " 从 " + oldLocation + " 传送到: " + location);
         }
+        new BukkitRunnable() {
+            public void run() {
+                if (player.isOnline()) {   //可能为玩家会掉线？
+                    double currentY = player.getLocation().getY();
+                    if (Math.abs(currentY - initialY) <= 10) {
+                        getLogger().info("玩家 " + playerName + " 的 Y 坐标在初始坐标的上下 10 个单位范围内: " + currentY);
+                    } else {
+                        getLogger().info("玩家 " + playerName + " 的 Y 坐标不在初始坐标的上下 10 个单位范围内: " + currentY);
+                        //重新传送一遍
+                        event.setTo(finalLocation);
+                    }
+                } else {
+                    getLogger().info("玩家 " + playerName + " 不在线或不存在！");
+                }
+            }
+        }.runTaskLater(this, 40L); // 40 ticks = 2 seconds
     }
     private Location findHighestNonAirBlockLocation(Location location) {
         World world = location.getWorld();
