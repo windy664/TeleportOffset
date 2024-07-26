@@ -2,9 +2,11 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ main ]
+    paths:
+      - '**/**'  # 监控所有文件的更改
   pull_request:
-    branches: [ main ]
+    paths:
+      - '**/**'  # 监控所有文件的更改
 
 jobs:
   build:
