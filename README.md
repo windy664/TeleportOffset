@@ -7,7 +7,7 @@
 ## <font size="4">功能</font>
 ## <font size="3">Features</font>
 
-- <font size="4">**重载**: 使用 `/TeleportOffset reload` 命令可以重新加载插件配置。</font>
+- <font size="4">**重载**: 使用 `/TeleportOffset reload` 命令可以重新加载插件配置！</font>
 - <font size="3">**Reload**: Use the `/TeleportOffset reload` command to reload the plugin configuration.</font>
 
 - <font size="4">**调试模式**: 使用 `/TeleportOffset debug` 可以启用或关闭调试模式。</font>
