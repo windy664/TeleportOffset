@@ -1,5 +1,6 @@
 package org.windy.teleportoffset;
 
+import com.sun.tools.javac.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -75,8 +76,9 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         double offsetY = this.getConfig().getDouble("teleport-offset.y");
         double offsetZ = this.getConfig().getDouble("teleport-offset.z");
         List<String> disabledWorlds = this.getConfig().getStringList("Disabled-world"); //白名单世界
-
+        //旧位置
         Location oldLocation = Objects.requireNonNull(event.getFrom()).clone();
+        //玩家传送后的位置(目的位置 )
         Location location = Objects.requireNonNull(event.getTo()).clone();
 
         // 获取玩家和目标世界的名字
@@ -85,6 +87,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         String playerName = player.getName();
         if (disabledWorlds.contains(worldName)) {
             location.add(offsetX, offsetY, offsetZ);
+            this.getLogger().info("玩家" + playerName + "已被执行偏移" + offsetX + "," + offsetY + "," + offsetZ);
         }else{
             location = findHighestNonAirBlockLocation(location);
             if(debugMode) {
@@ -93,29 +96,71 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         }
         final Location finalLocation = location.clone();
         event.setTo(finalLocation);
+        if(debugMode) {
+            this.getLogger().info("玩家 " + playerName + " 应该从 " + oldLocation + " 传送到: " + location);
+        }
 
-        //检查玩家是否传送到目的Y值
+        //传送检查
 
         double initialY = player.getLocation().getY();
-        if(debugMode) {
-            this.getLogger().info("玩家 " + playerName + " 从 " + oldLocation + " 传送到: " + location);
-        }
+        getLogger().info("玩家的实际Y值是：" + initialY);
+
+        // 传送前设置无敌
+        player.setInvulnerable(true);
+
         new BukkitRunnable() {
+            @Override
             public void run() {
-                if (player.isOnline()) {   //可能为玩家会掉线？
+                if (player.isOnline()) {   // 检查玩家是否在线
                     double currentY = player.getLocation().getY();
-                    if (Math.abs(currentY - initialY) <= 10) {
-                        getLogger().info("玩家 " + playerName + " 的 Y 坐标在初始坐标的上下 10 个单位范围内: " + currentY);
+                    if (Math.abs(currentY - initialY) <= 1) {
+                        getLogger().info("因此玩家 " + player.getName() + " 的 Y 坐标在目的坐标的上下 1 个单位范围内: " + currentY);
                     } else {
-                        getLogger().info("玩家 " + playerName + " 的 Y 坐标不在初始坐标的上下 10 个单位范围内: " + currentY);
-                        //重新传送一遍
-                        event.setTo(finalLocation);
+                        getLogger().info("因此玩家 " + player.getName() + " 的 Y 坐标不在目的坐标的上下 1 个单位范围内: " + currentY);
+                        // 重新传送一遍，限制重试次数
+                        new BukkitRunnable() {
+                            int retries = 0;
+                            @Override
+                            public void run() {
+                                if (retries >= 3 || !player.isOnline()) {
+                                    this.cancel();
+                                    return;
+                                }
+
+                                double currentY = player.getLocation().getY();
+                                if (Math.abs(currentY - initialY) <= 1) {
+                                    getLogger().info("玩家 " + player.getName() + " 的 Y 坐标在目的坐标的上下 1 个单位范围内: " + currentY);
+                                    this.cancel();
+                                } else {
+                                    // 重新传送玩家
+                                    Bukkit.getScheduler().runTask(TeleportOffset.this, () -> {
+                                        player.teleport(finalLocation);
+                                        getLogger().info("玩家 " + player.getName() + " 实际Y值: " + player.getLocation().getY());
+                                        getLogger().info("玩家 " + player.getName() + " 传送到: " + finalLocation);
+                                    });
+                                    retries++;
+                                }
+                            }
+                        }.runTaskTimer(TeleportOffset.this, 0L, 10L); // 每0.5秒检查一次
                     }
                 } else {
-                    getLogger().info("玩家 " + playerName + " 不在线或不存在！");
+                    getLogger().info("玩家 " + player.getName() + " 不在线或不存在！");
                 }
             }
-        }.runTaskLater(this, 40L); // 40 ticks = 2 seconds
+        }.runTaskLater(this, 60L); // 3秒后检查
+
+        // 4秒后移除无敌效果
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (player.isOnline()) {
+                    player.setInvulnerable(false);
+                    getLogger().info("移除玩家 " + player.getName() + " 的无敌效果。");
+                } else {
+                    getLogger().info("玩家 " + player.getName() + " 不在线或不存在！");
+                }
+            }
+        }.runTaskLater(this, 80L); // 总计4秒后移除无敌效果
     }
     private Location findHighestNonAirBlockLocation(Location location) {
         World world = location.getWorld();
