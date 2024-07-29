@@ -122,7 +122,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                             int retries = 0;
                             @Override
                             public void run() {
-                                if (retries >= 3 || !player.isOnline()) {
+                                if (retries >= 2 || !player.isOnline()) {
                                     this.cancel();
                                     return;
                                 }
@@ -141,7 +141,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                                     retries++;
                                 }
                             }
-                        }.runTaskTimer(TeleportOffset.this, 0L, 10L); // 每0.5秒检查一次
+                        }.runTaskTimer(TeleportOffset.this, 0L, 5L); // 每0.5秒检查一次
                     }
                 } else {
                     getLogger().info("玩家 " + player.getName() + " 不在线或不存在！");
