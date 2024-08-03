@@ -9,12 +9,19 @@ Disabled-world:
   - spawn
 #是否开启调试模式
 Debug: true
+#传送误差Y值
+Deviation: 1
+#重新判断的次数
+times: 2
 #虚空自动传送
 void:
+  #是否启用
   enable: true
+  #虚空的Y值定义
   y: -40
+  #启用的世界
   worlds:
     - world
-  #这里的命令以控制台身份执行，支持PlaceholderAPI
+  #这里的命令以控制台身份执行，支持PlaceholderAPI占位符
   commands:
     - tp %player_name% -18 60 -37
