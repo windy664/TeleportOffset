@@ -129,57 +129,60 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         double TargetY = location.getY();
         log("获得玩家"+playerName+"的§c目标Y值是："+TargetY);
 
-        // 获取玩家当前的实际 Y 坐标值并记录到日志中，以方便后续检查和比较
-        double currentY = player.getLocation().getY();
-        log("但是玩家" + playerName + "§c实际Y值是：" + currentY);
+
 
         // 在传送前设置玩家为无敌状态，确保玩家在传送过程中不会受到伤害
         player.setInvulnerable(true);
 
-        // 创建一个新的 BukkitRunnable 任务，用于检查玩家的 Y 坐标是否在误差范围内，以及在必要时重新传送玩家
-        if (player.isOnline()) {   // 检查玩家是否在线
-            if (Math.abs(currentY - TargetY) <= 1) {
-                // 如果玩家当前的 Y 坐标值与目标 Y 坐标值的差的绝对值小于或等于 1，则记录一条日志，表示玩家的 Y 坐标在误差范围内
-                log("所以玩家 " + playerName + " 的 Y 坐标§c在误差§f的上下 1 个单位范围内: " + currentY);
+                    // 获取玩家当前的实际 Y 坐标值并记录到日志中，以方便后续检查和比较
+        Bukkit.getScheduler().runTaskLaterAsynchronously(TeleportOffset.this, () -> {
+            double currentY = player.getLocation().getY();
+            log("但是玩家" + playerName + "§c实际Y值是：" + currentY);
+
+            if (player.isOnline()) {   // 检查玩家是否在线
+                if (Math.abs(currentY - TargetY) <= 1) {
+                    // 如果玩家当前的 Y 坐标值与目标 Y 坐标值的差的绝对值小于或等于 1，则记录一条日志，表示玩家的 Y 坐标在误差范围内
+                    log("所以玩家 " + playerName + " 的 Y 坐标§c在误差§f的上下 1 个单位范围内: " + currentY);
+                } else {
+                    // 如果玩家当前的 Y 坐标值与目标 Y 坐标值的差的绝对值大于 1，则记录一条日志，表示玩家的 Y 坐标不在误差范围内，并启动一个新的定时任务来检查 Y 坐标
+                    log("因此" + playerName + " 的 Y 坐标§c不在误差§f的上下 1 个单位范围内，开始执行重新传送");
+                    event.setTo(finalLocation);
+                    // 重新传送一遍，限制重试次数
+                    new BukkitRunnable() {
+                        int retries = 0;
+
+                        @Override
+                        public void run() {
+                            if (retries >= times || !player.isOnline()) {
+                                this.cancel();
+                                return;
+                            }
+
+                            AtomicReference<Double> currentY = new AtomicReference<>(player.getLocation().getY());
+
+                            if (Math.abs(currentY.get() - TargetY) <= 1) {
+                                // 如果玩家的 Y 坐标在误差范围内，记录一条日志并取消当前定时任务
+                                log("现在，" + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
+                                this.cancel();
+                            } else {
+                                // 如果玩家的 Y 坐标不在误差范围内，重新传送玩家到最终位置，并增加重试次数
+                                Bukkit.getScheduler().runTask(TeleportOffset.this, () -> {
+                                    player.teleport(finalLocation);
+                                    currentY.set(player.getLocation().getY());
+                                    // 记录一条日志，表示重新传送
+                                    log("由于未达到预期，继续" + playerName + "再次传送到: " + finalLocation);
+                                });
+                                retries++;
+                            }
+                        }
+                    }.runTaskTimer(TeleportOffset.this, 0L, 5L); // 每0.5秒检查一次
+                }
             } else {
-                // 如果玩家当前的 Y 坐标值与目标 Y 坐标值的差的绝对值大于 1，则记录一条日志，表示玩家的 Y 坐标不在误差范围内，并启动一个新的定时任务来检查 Y 坐标
-                log("因此" + playerName + " 的 Y 坐标§c不在误差§f的上下 1 个单位范围内，开始执行重新传送");
-                event.setTo(finalLocation);
-                // 重新传送一遍，限制重试次数
-                new BukkitRunnable() {
-                    int retries = 0;
-
-                    @Override
-                    public void run() {
-                        if (retries >= times ||!player.isOnline()) {
-                            this.cancel();
-                            return;
-                        }
-
-                        AtomicReference<Double> currentY = new AtomicReference<>(player.getLocation().getY());
-
-
-                        if (Math.abs(currentY.get() - TargetY) <= 1) {
-                            // 如果玩家的 Y 坐标在误差范围内，记录一条日志并取消当前定时任务
-                            log("现在，" + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
-                            this.cancel();
-                        } else {
-                            // 如果玩家的 Y 坐标不在误差范围内，重新传送玩家到最终位置，并增加重试次数
-                            Bukkit.getScheduler().runTask(TeleportOffset.this, () -> {
-                                player.teleport(finalLocation);
-                                currentY.set(player.getLocation().getY());
-                                // 记录一条日志，表示重新传送
-                                log("由于未达到预期，继续" + playerName + "再次传送到: " + finalLocation);
-                            });
-                            retries++;
-                        }
-                    }
-                }.runTaskTimer(TeleportOffset.this, 0L, 5L); // 每0.5秒检查一次
+                // 如果玩家不在线，记录一条日志表示已退出传送修正过程
+                log("由于玩家 " + playerName + "不在线，已退出传送修正。");
             }
-        } else {
-            // 如果玩家不在线，记录一条日志表示已退出传送修正过程
-            log("由于玩家 " + playerName + "不在线，已退出传送修正。");
-        }
+        }, 30L); // 延迟1.5秒（30 ticks）后执行
+
 
         // 启动一个新的 BukkitRunnable 任务，用于在 4 秒后移除玩家的无敌效果
         new BukkitRunnable() {
@@ -188,10 +191,10 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 if (player.isOnline()) {
                     // 如果玩家在线，移除其无敌效果，并记录一条日志表示移除成功
                     player.setInvulnerable(false);
-                    getLogger().info("移除玩家 " + player.getName() + " 的无敌效果。");
+                    log("移除玩家 " + player.getName() + " 的无敌效果。");
                 } else {
                     // 如果玩家不在线，记录一条日志表示玩家不存在或已离线
-                    getLogger().info("玩家 " + player.getName() + " 不在线或不存在！");
+                    log("玩家 " + player.getName() + " 不在线或不存在！");
                 }
             }
         }.runTaskLater(this, 80L);
