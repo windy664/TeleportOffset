@@ -5,6 +5,5 @@ api-version: '1.20'
 commands:
   teleportoffset:
     description: Commands for TeleportOffset plugin.
-    usage: /<command> [reload]
 
 
