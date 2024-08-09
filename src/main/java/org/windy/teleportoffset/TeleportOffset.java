@@ -85,6 +85,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 Location location = player.getLocation();
                 findHighestNonAirBlockLocation(location);
                 player.teleport(location);
+                return true;
             }else{
                 sender.sendMessage(Texts.help);
                 return true;
@@ -139,7 +140,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         // 在传送前设置玩家为无敌状态，确保玩家在传送过程中不会受到伤害
         player.setInvulnerable(true);
 
-                    // 获取玩家当前的实际 Y 坐标值并记录到日志中，以方便后续检查和比较
+        // 获取玩家当前的实际 Y 坐标值并记录到日志中，以方便后续检查和比较
         Bukkit.getScheduler().runTaskLaterAsynchronously(TeleportOffset.this, () -> {
             double currentY = player.getLocation().getY();
             log("但是玩家" + playerName + "§c实际Y值是：" + currentY);
