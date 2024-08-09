@@ -18,7 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 import java.util.Objects;
-
+import java.util.concurrent.atomic.AtomicReference;
 
 
 public class TeleportOffset extends JavaPlugin implements Listener {
@@ -143,7 +143,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 log("所以！玩家 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
             } else {
                 // 如果玩家当前的 Y 坐标值与目标 Y 坐标值的差的绝对值大于 1，则记录一条日志，表示玩家的 Y 坐标不在误差范围内，并启动一个新的定时任务来检查 Y 坐标
-                log("但是玩家 " + playerName + " 的 Y 坐标不在误差的上下 1 个单位范围内: " + currentY);
+                log("因此" + playerName + " 的 Y 坐标不在误差的上下 1 个单位范围内: " + currentY);
                 // 重新传送一遍，限制重试次数
                 new BukkitRunnable() {
                     int retries = 0;
@@ -155,17 +155,18 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                             return;
                         }
 
-                        double currentY = player.getLocation().getY();
-                        if (Math.abs(currentY - TargetY) <= 1) {
+                        AtomicReference<Double> currentY = new AtomicReference<>(player.getLocation().getY());
+                        if (Math.abs(currentY.get() - TargetY) <= 1) {
                             // 如果玩家的 Y 坐标在误差范围内，记录一条日志并取消当前定时任务
-                            log("尝试重新传送，但是 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
+                            log("尝试重新传送，现在 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
                             this.cancel();
                         } else {
                             // 如果玩家的 Y 坐标不在误差范围内，重新传送玩家到最终位置，并增加重试次数
                             Bukkit.getScheduler().runTask(TeleportOffset.this, () -> {
                                 player.teleport(finalLocation);
+                                currentY.set(player.getLocation().getY());
                                 // 记录一条日志，表示重新传送
-                                log("因此玩家" + playerName + "再次传送到: " + finalLocation);
+                                log("继续" + playerName + "再次传送到: " + finalLocation);
                             });
                             retries++;
                         }
