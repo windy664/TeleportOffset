@@ -10,6 +10,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,6 +32,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
     double offsetZ;
     List<String> disabledWorlds;
     int times;
+    boolean isTeleporting = false;
     @Override
     public void onEnable() {
         this.saveDefaultConfig();
@@ -98,6 +100,10 @@ public class TeleportOffset extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
 
+        if (isTeleporting) {
+            return; // 如果当前正在传送，则跳过事件处理
+        }
+        isTeleporting = true;
         // 通过 event.getFrom() 获取玩家传送前的位置，并通过 clone() 方法创建一个副本，确保不会对原位置对象进行修改
         Location oldLocation = Objects.requireNonNull(event.getFrom()).clone();
         // 通过 event.getTo() 获取玩家传送后的位置，并通过 clone() 方法创建一个副本，确保不会对原位置对象进行修改
@@ -109,7 +115,6 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         String worldName = Objects.requireNonNull(location.getWorld()).getName();
         // 获取玩家的名称
         String playerName = player.getName();
-
         // 根据配置判断是否要对玩家的传送目标位置进行偏移
         if (disabledWorlds.contains(worldName)) {
             // 如果目标世界在配置的列表中，将按照配置中的偏移量对目标位置进行修改
@@ -204,6 +209,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 }
             }
         }.runTaskLater(this, 80L);
+        isTeleporting = false;
     }
 
     private Location findHighestNonAirBlockLocation(Location location) {
@@ -251,6 +257,5 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         this.getServer().getConsoleSender().sendMessage("已卸载！\n");
         this.getServer().getConsoleSender().sendMessage("§6+--------------------------------------+");
     }
-
-
+    
 }
