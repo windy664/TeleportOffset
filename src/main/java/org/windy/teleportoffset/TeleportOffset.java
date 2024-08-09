@@ -63,6 +63,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        Player player = (Player) sender;
         if (command.getName().equalsIgnoreCase("teleportoffset")) {
             if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
                 if (!sender.hasPermission("teleportoffset.reload")) {
@@ -80,8 +81,12 @@ public class TeleportOffset extends JavaPlugin implements Listener {
                 debugMode = !debugMode; // 切换debug模式
                 sender.sendMessage("§aDebug模式已临时" + (debugMode ? "开启" : "关闭"));
                 return true;
+            } else if (args.length > 0 && args[0].equalsIgnoreCase("top")) {
+                Location location = player.getLocation();
+                findHighestNonAirBlockLocation(location);
+                player.teleport(location);
             }else{
-                sender.sendMessage("§c用法: /teleportoffset reload");
+                sender.sendMessage(Texts.help);
                 return true;
             }
         }
