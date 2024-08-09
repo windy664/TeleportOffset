@@ -54,6 +54,13 @@ public class TeleportOffset extends JavaPlugin implements Listener {
         // Plugin startup logic
     }
 
+    private void log(String message) {
+        if (debugMode) {
+            this.getLogger().info(message);
+        }
+    }
+
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("teleportoffset")) {
@@ -95,79 +102,65 @@ public class TeleportOffset extends JavaPlugin implements Listener {
 
         if (disabledWorlds.contains(worldName)) {
             location.add(offsetX, offsetY, offsetZ);
-            this.getLogger().info("玩家" + playerName + "已被执行偏移" + offsetX + "," + offsetY + "," + offsetZ);
+            log("玩家" + playerName + "已被执行偏移" + offsetX + "," + offsetY + "," + offsetZ);
         }else{
             location = findHighestNonAirBlockLocation(location);
-            if(debugMode) {
-                this.getLogger().info("玩家 " + playerName + " 当前世界最高点：" + location);
-            }
+            log("玩家 " + playerName + " 当前世界最高点：" + location);
         }
         final Location finalLocation = location.clone();
         event.setTo(finalLocation);
 
 
-        if(debugMode) {
-            this.getLogger().info("玩家 " + playerName + " 应该从 " + oldLocation + " 传送到: " + location);
-        }
+        log("玩家 " + playerName + " 应该从 " + oldLocation + " 传送到: " + location);
 
 
         //传送检查
 
         double initialY = player.getLocation().getY();
-        if(debugMode) {
-            getLogger().info("玩家" + playerName + "Y值应该是：" + initialY);
-        }
+        log("玩家" + playerName + "Y值应该是：" + initialY);
         // 传送前设置无敌
         player.setInvulnerable(true);
 
-      //  new BukkitRunnable() {
+        //  new BukkitRunnable() {
         //    @Override
-          //  public void run() {
+        //  public void run() {
         if (player.isOnline()) {   // 检查玩家是否在线
             double currentY = player.getLocation().getY(); //检查后的Y值
             if (Math.abs(currentY - initialY) <= 1) {
-                if(debugMode) {
-                    getLogger().info("但是玩家 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
-                }
+                    log("但是玩家 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
             } else {
-                if (debugMode) {
-                    getLogger().info("但是玩家 " + playerName + " 的 Y 坐标不在误差的上下 1 个单位范围内: " + currentY);
+                log("但是玩家 " + playerName + " 的 Y 坐标不在误差的上下 1 个单位范围内: " + currentY);
                     // 重新传送一遍，限制重试次数
-                }
-                    new BukkitRunnable() {
-                        int retries = 0;
+                new BukkitRunnable() {
+                    int retries = 0;
 
-                        @Override
-                        public void run() {
-                            if (retries >= times || !player.isOnline()) {
-                                this.cancel();
-                                return;
-                            }
-
-                            double currentY = player.getLocation().getY();
-                            if (Math.abs(currentY - initialY) <= 1) {
-                                if(debugMode) {
-                                    getLogger().info("尝试重新传送，但是 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
-                                }
-                                this.cancel();
-                            } else {
-                                // 重新传送玩家
-                                Bukkit.getScheduler().runTask(TeleportOffset.this, () -> {
-                                    player.teleport(finalLocation);
-                                    if(debugMode){
-                                        getLogger().info("因此玩家" + playerName + "再次传送到: " + finalLocation);
-                                    }
-                                });
-                                retries++;
-                            }
+                    @Override
+                    public void run() {
+                        if (retries >= times || !player.isOnline()) {
+                            this.cancel();
+                            return;
                         }
-                    }.runTaskTimer(TeleportOffset.this, 0L, 5L); // 每0.5秒检查一次
-                }
-        } else if(debugMode){
-            getLogger().info("由于玩家 " + playerName + "不在线，已退出传送修正。");
+
+                        double currentY = player.getLocation().getY();
+                        if (Math.abs(currentY - initialY) <= 1) {
+                            log("尝试重新传送，但是 " + playerName + " 的 Y 坐标在误差的上下 1 个单位范围内: " + currentY);
+                            this.cancel();
+                        } else {
+                            // 重新传送玩家
+                            Bukkit.getScheduler().runTask(TeleportOffset.this, () -> {
+                                player.teleport(finalLocation);
+                                log("因此玩家" + playerName + "再次传送到: " + finalLocation);
+                            });
+                            retries++;
+                        }
+                    }
+                }.runTaskTimer(TeleportOffset.this, 0L, 5L); // 每0.5秒检查一次
+            }
+        } else {
+            log("由于玩家 " + playerName + "不在线，已退出传送修正。");
         }
-         //   }
-      //  }.runTaskLater(this, 60L); // 3秒后检查
+        //   }
+        //  }.runTaskLater(this, 60L); // 3秒后检查
 
         // 4秒后移除无敌效果
         new BukkitRunnable() {
@@ -217,9 +210,7 @@ public class TeleportOffset extends JavaPlugin implements Listener {
             for (String command : commands) {
                 String processedCommand = PlaceholderAPI.setPlaceholders(player, command);
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processedCommand);
-                if (debugMode) {
-                    getLogger().info("玩家 " + player + " 因y坐标低于阈值被执行: " + processedCommand);
-                }
+                getLogger().info("玩家 " + player + " 因y坐标低于阈值被执行: " + processedCommand);
             }
         }
     }
